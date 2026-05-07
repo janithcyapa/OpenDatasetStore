@@ -58,7 +58,7 @@ from google.colab import drive
 drive.mount('/content/drive')
 
 # Download the latest store manager
-!wget -q -O open_dataset_store.py https://raw.githubusercontent.com/YOUR_REPO/open_dataset_store/main/open_dataset_store.py
+!wget -q -O open_dataset_store.py https://raw.githubusercontent.com/janithcyapa/OpenDatasetStore/refs/heads/main/open_dataset_store.py
 
 from open_dataset_store import OpenDatasetStore
 ```
