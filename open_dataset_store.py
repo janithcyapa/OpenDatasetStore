@@ -88,8 +88,7 @@ class OpenDatasetStore:
             json.dump(data, f, indent=2)
 
     def _generate_timestamp(self) -> str:
-        """Return a compact timestamp string."""
-        return datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        return str(int(datetime.now(timezone.utc).timestamp()))
 
     def _generate_entry_id(self, entry_type: str, index: Dict) -> str:
         """Generate a unique entry ID based on the configured format."""
