@@ -161,15 +161,29 @@ class OpenDatasetStore:
         return entity_id
 
     def list_entities(self, entity_type: str) -> pd.DataFrame:
-        """Return a DataFrame preview of all entities of a given type."""
+        """Return a formatted DataFrame of all entities, excluding internal counters."""
         data = self._load_json(self._get_entity_index_path(entity_type))
-        if not data:
+        
+        # 1. Filter out internal keys (those starting with '__')
+        entities = {k: v for k, v in data.items() if not k.startswith("__")}
+        
+        if not entities:
             print(f"No entities found for type '{entity_type}'.")
             return pd.DataFrame()
 
-        df = pd.DataFrame.from_dict(data, orient="index")
+        # 2. Convert to DataFrame
+        df = pd.DataFrame.from_dict(entities, orient="index")
         df.index.name = "entity_id"
         df.reset_index(inplace=True)
+        
+        # 3. Reorder columns for better readability (ID and Name first)
+        cols_at_front = ["entity_id", "name"]
+        # Only include columns that actually exist in the data
+        existing_front = [c for c in cols_at_front if c in df.columns]
+        other_cols = [c for c in df.columns if c not in existing_front]
+        
+        df = df[existing_front + other_cols]
+        
         return df
 
     def get_entity(self, entity_type: str, entity_id: str) -> Dict:
