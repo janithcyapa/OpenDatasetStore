@@ -592,7 +592,7 @@ class OpenDatasetStore:
         os.makedirs(file_dir, exist_ok=True)
         
         # Filename: front_video.mp4 (simple and clean)
-        dest_filename = f"{label}{ext}"
+        dest_filename = f"{entry_id}_{entity_id}_{label}{ext}"
         dest_path = os.path.join(file_dir, dest_filename)
         rel_path = os.path.relpath(dest_path, self.base_dir)
 
