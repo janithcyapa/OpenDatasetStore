@@ -1,6 +1,6 @@
 # open_dataset_store.py
 """
-OpenDatasetStore: A universal, plug-and-play manager for organizing research datasets on Google Drive.
+OpenDatasetStore: A universal, plug-and-play manager for organising research datasets on Google Drive.
 Bridge the gap between raw storage and Google Colab with an automated, JSON-indexed manifest system.
 
 Usage:
@@ -10,7 +10,9 @@ Usage:
     store = OpenDatasetStore(
         base_dir='/content/drive/MyDrive/MyDataset',
         entry_id_format="entry_{type}_{num:04d}",
-        raw_filename_format="{entry_id}_{entity_id}_{ts}_{original}"
+        entity_id_format="sub_{type}_{num:04d}",
+        raw_filename_format="{entry_id}_{entity_id}_{ts}_{original}",
+        processed_filename_format="{entry_id}_{tag}.parquet"
     )
 """
 
@@ -38,6 +40,7 @@ class OpenDatasetStore:
         self,
         base_dir: str,
         entry_id_format: str = "{type}_{num:06d}",
+        entity_id_format: str = "ent_{num:04d}",
         raw_filename_format: str = "{entry_id}_{entity_id}_{ts}_{original}",
         processed_filename_format: str = "{entry_id}_{tag}.parquet",
     ):
@@ -46,6 +49,8 @@ class OpenDatasetStore:
             base_dir: Full path to the dataset folder on Google Drive.
             entry_id_format: Format string for auto-generated entry IDs.
                              Use {type} (entry_type), {num} (auto-increment integer).
+            entity_id_format: Format string for auto-generated entity IDs.
+                              Use {type} (entity_type), {num} (auto-increment integer).
             raw_filename_format: Format string for saved raw CSV files.
                                  Available placeholders: {entry_id}, {entity_id},
                                  {ts} (YYYYMMDD_HHMMSS), {original} (original filename).
@@ -54,6 +59,7 @@ class OpenDatasetStore:
         """
         self.base_dir = base_dir
         self.entry_id_format_str = entry_id_format
+        self.entity_id_format_str = entity_id_format
         self.raw_filename_format_str = raw_filename_format
         self.processed_filename_format_str = processed_filename_format
 
@@ -66,7 +72,7 @@ class OpenDatasetStore:
         os.makedirs(self.raw_dir, exist_ok=True)
         os.makedirs(self.processed_dir, exist_ok=True)
 
-        print(f"Store initialized at: {self.base_dir}")
+        print(f"Store initialised at: {self.base_dir}")
 
     # ------------------------------------------------------------------
     # Internal Helpers
@@ -97,6 +103,13 @@ class OpenDatasetStore:
         index["__auto_counter__"] = new_counter
         return self.entry_id_format_str.format(type=entry_type, num=new_counter)
 
+    def _generate_entity_id(self, entity_type: str, index: Dict) -> str:
+        """Generate a unique entity ID using the configurable entity_id_format."""
+        counter = index.get("__entity_counter__", 0)
+        new_counter = counter + 1
+        index["__entity_counter__"] = new_counter
+        return self.entity_id_format_str.format(type=entity_type, num=new_counter)
+
     def _build_raw_filename(
         self, entry_id: str, entity_id: str, timestamp: str, original_name: str
     ) -> str:
@@ -118,27 +131,34 @@ class OpenDatasetStore:
     def create_entity(
         self,
         entity_type: str,
-        entity_id: str,
-        description: str = "",
+        name: str = "",
+        entity_id: Optional[str] = None,
         **metadata,
-    ) -> None:
+    ) -> str:
         """Register a new entity (e.g., subject, room).
 
         Args:
             entity_type: Category of entity (e.g., 'subjects', 'rooms').
             entity_id: Unique identifier for this entity.
-            description: Short textual description.
+            name: Short human‑readable name for the entity.
             **metadata: Any additional key-value pairs to store.
+
+        Returns:
+            The entity ID (user‑provided or auto‑generated).
         """
         index_path = self._get_entity_index_path(entity_type)
         data = self._load_json(index_path)
 
-        if entity_id in data:
-            raise ValueError(f"Entity '{entity_id}' already exists in {entity_type}.")
+        if entity_id is None:
+            entity_id = self._generate_entity_id(entity_type, data)
 
-        data[entity_id] = {"description": description, **metadata}
+        if entity_id in data:
+            raise ValueError(f"Entity '{entity_id}' already exists.")
+
+        data[entity_id] = {"name": name, **metadata}
         self._save_json(index_path, data)
         print(f"Entity '{entity_id}' created in {entity_type}.")
+        return entity_id
 
     def list_entities(self, entity_type: str) -> pd.DataFrame:
         """Return a DataFrame preview of all entities of a given type."""
@@ -160,31 +180,42 @@ class OpenDatasetStore:
         return data[entity_id]
 
     def edit_entity(
-        self, entity_type: str, entity_id: str, description: Optional[str] = None, **updates
-    ) -> None:
+        self,
+        entity_type: str,
+        entity_id: str,
+        name: Optional[str] = None,
+        **updates,
+    ) -> str:
         """Update metadata fields of an existing entity.
 
         Args:
             entity_type: Category of entity.
             entity_id: ID of the entity to update.
-            description: (Optional) new description.
+            name: (Optional) new name.
             **updates: Other metadata fields to update/add.
+
+        Returns:
+            The entity_id that was edited.
         """
         data = self._load_json(self._get_entity_index_path(entity_type))
         if entity_id not in data:
             raise KeyError(f"Entity '{entity_id}' not found in {entity_type}.")
 
-        if description is not None:
-            data[entity_id]["description"] = description
+        if name is not None:
+            data[entity_id]["name"] = name
         data[entity_id].update(updates)
         self._save_json(self._get_entity_index_path(entity_type), data)
         print(f"Entity '{entity_id}' updated.")
+        return entity_id
 
-    def delete_entity(self, entity_type: str, entity_id: str) -> None:
+    def delete_entity(self, entity_type: str, entity_id: str) -> str:
         """Remove an entity and all its entries.
 
         Warning: This does NOT automatically delete existing entry raw/processed files.
         It only removes the entity from the index.
+
+        Returns:
+            The entity_id that was deleted.
         """
         index_path = self._get_entity_index_path(entity_type)
         data = self._load_json(index_path)
@@ -194,6 +225,7 @@ class OpenDatasetStore:
         del data[entity_id]
         self._save_json(index_path, data)
         print(f"Entity '{entity_id}' removed from {entity_type}.")
+        return entity_id
 
     # ------------------------------------------------------------------
     # Entry Management (entries = experiments, measurements, ...)
@@ -243,7 +275,7 @@ class OpenDatasetStore:
             raise ValueError(f"Error reading CSV: {e}")
 
         # 3. Determine entry ID and timestamp
-        ts = timestamp if timestamp else self._generate_timestamp()
+        ts = self._generate_timestamp()
         index_path = self._get_entry_index_path(entry_type)
         index_data = self._load_json(index_path)
 
@@ -301,7 +333,7 @@ class OpenDatasetStore:
         Returns:
             The entry ID.
         """
-        ts = timestamp if timestamp else self._generate_timestamp()
+        ts = self._generate_timestamp()
         index_path = self._get_entry_index_path(entry_type)
         index_data = self._load_json(index_path)
 
@@ -383,7 +415,7 @@ class OpenDatasetStore:
         tag: str,
         df: pd.DataFrame,
         **metadata,
-    ) -> None:
+    ) -> str:
         """Save a processed DataFrame as Parquet and link it to the entry.
 
         Args:
@@ -392,6 +424,9 @@ class OpenDatasetStore:
             tag: A short label for this processing (e.g., 'filtered', 'gnn_output').
             df: The processed DataFrame.
             **metadata: Additional metadata to store for this processed tag.
+
+        Returns:
+            The tag that was used, confirming the processed data was saved.
         """
         meta = self.get_entry(entry_type, entry_id)
         proc_save_dir = os.path.join(self.processed_dir, entry_type, tag)
@@ -403,7 +438,6 @@ class OpenDatasetStore:
         df.to_parquet(full_path, index=False)
 
         meta.setdefault("processed_files", {})[tag] = rel_path
-        # optionally store metadata for this processed set
         meta.setdefault("processed_metadata", {})[tag] = metadata
 
         index_path = self._get_entry_index_path(entry_type)
@@ -411,6 +445,7 @@ class OpenDatasetStore:
         index_data[entry_id] = meta
         self._save_json(index_path, index_data)
         print(f"✅ Processed data '{tag}' saved and linked to entry '{entry_id}'.")
+        return tag
 
     def replace_processed_data(
         self,
@@ -419,8 +454,12 @@ class OpenDatasetStore:
         tag: str,
         df: pd.DataFrame,
         **metadata,
-    ) -> None:
-        """Replace an existing processed dataset (overwrites file, updates metadata)."""
+    ) -> str:
+        """Replace an existing processed dataset (overwrites file, updates metadata).
+
+        Returns:
+            The tag of the replaced dataset.
+        """
         meta = self.get_entry(entry_type, entry_id)
         if tag not in meta.get("processed_files", {}):
             raise KeyError(f"Tag '{tag}' does not exist for entry '{entry_id}'. Use add_processed_data first.")
@@ -435,6 +474,7 @@ class OpenDatasetStore:
         index_data[entry_id] = meta
         self._save_json(index_path, index_data)
         print(f"✅ Processed data '{tag}' replaced for entry '{entry_id}'.")
+        return tag
 
     def edit_entry(
         self,
@@ -442,8 +482,12 @@ class OpenDatasetStore:
         entry_id: str,
         description: Optional[str] = None,
         **updates,
-    ) -> None:
-        """Update metadata of an entry (does not change raw/processed data files)."""
+    ) -> str:
+        """Update metadata of an entry (does not change raw/processed data files).
+
+        Returns:
+            The entry_id that was edited.
+        """
         index_data = self._load_json(self._get_entry_index_path(entry_type))
         if entry_id not in index_data:
             raise KeyError(f"Entry '{entry_id}' not found in {entry_type}.")
@@ -457,12 +501,21 @@ class OpenDatasetStore:
                 index_data[entry_id][k] = v
         self._save_json(self._get_entry_index_path(entry_type), index_data)
         print(f"Entry '{entry_id}' metadata updated.")
+        return entry_id
 
-    def delete_entry(self, entry_type: str, entry_id: str, ask_confirm: bool = True) -> None:
+    def delete_entry(
+        self,
+        entry_type: str,
+        entry_id: str,
+        ask_confirm: bool = True,
+    ) -> Optional[str]:
         """Delete an entry and all associated raw/processed files.
 
         Args:
             ask_confirm: If True, prompt the user for confirmation via input().
+
+        Returns:
+            The entry_id if deletion was successful, None if cancelled.
         """
         index_data = self._load_json(self._get_entry_index_path(entry_type))
         if entry_id not in index_data:
@@ -474,7 +527,7 @@ class OpenDatasetStore:
             ).strip().lower()
             if confirm != "y":
                 print("Deletion cancelled.")
-                return
+                return None
 
         meta = index_data[entry_id]
 
@@ -495,6 +548,7 @@ class OpenDatasetStore:
         del index_data[entry_id]
         self._save_json(self._get_entry_index_path(entry_type), index_data)
         print(f"✅ Entry '{entry_id}' completely removed.")
+        return entry_id
 
 
 # ------------------------------------------------------------------
@@ -509,6 +563,7 @@ def quick_start(base_dir: str) -> OpenDatasetStore:
     return OpenDatasetStore(
         base_dir=base_dir,
         entry_id_format="entry_{num:04d}",
+        entity_id_format="entity_{num:04d}",
         raw_filename_format="{entry_id}_{entity_id}_{ts}_{original}",
         processed_filename_format="{entry_id}_{tag}.parquet",
     )
