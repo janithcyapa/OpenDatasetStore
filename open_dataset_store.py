@@ -569,41 +569,37 @@ class OpenDatasetStore:
     # ------------------------------------------------------------------
     def add_related_file(self, entry_type: str, entry_id: str, label: str, local_path: str) -> str:
         """
-        Links an existing file on the Colab VM to an entry.
-        
-        Args:
-            entry_type: e.g., 'experiments'
-            entry_id: e.g., 'experiments_0001'
-            label: e.g., 'front_video', 'side_video', 'raw_zip'
-            local_path: Path to the file currently sitting in Colab (e.g., '/content/video.mp4')
+        Moves a file to Drive with naming: {entry_id}_{entity_id}_{label}.ext
         """
         import shutil
         
-        # 1. Load Index
+        # 1. Load Index to find the linked Entity ID
         idx_path = self._get_entry_index_path(entry_type)
         index_data = self._load_json(idx_path)
         if entry_id not in index_data:
             raise KeyError(f"Entry {entry_id} not found.")
+        
+        # Get the entity_id (subject ID) from the experiment metadata
+        entity_id = index_data[entry_id].get("entity_id", "unknown")
 
-        # 2. Prepare Destination
-        # Structure: related_files/experiments/experiments_0001/
+        # 2. Prepare Destination Path
         ext = os.path.splitext(local_path)[1]
         file_dir = os.path.join(self.base_dir, "related_files", entry_type, entry_id)
         os.makedirs(file_dir, exist_ok=True)
         
-        # Filename: front_video.mp4 (simple and clean)
+        # Strictly formatted filename: experiments_0001_sub_0001_front_video.mp4
         dest_filename = f"{entry_id}_{entity_id}_{label}{ext}"
         dest_path = os.path.join(file_dir, dest_filename)
         rel_path = os.path.relpath(dest_path, self.base_dir)
 
-        # 3. Copy file to Drive
+        # 3. Copy to Google Drive
         shutil.copy(local_path, dest_path)
 
-        # 4. Update JSON
+        # 4. Update the JSON Manifest
         index_data[entry_id].setdefault("related_files", {})[label] = rel_path
         self._save_json(idx_path, index_data)
         
-        print(f"📎 Attached {label} to {entry_id} at {rel_path}")
+        print(f"📎 Attached: {dest_filename}")
         return rel_path
 
     def upload_related_file_interactive(self, entry_type: str, entry_id: str, label: str) -> Optional[str]:
