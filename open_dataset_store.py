@@ -607,22 +607,30 @@ class OpenDatasetStore:
         return rel_path
 
     def upload_related_file_interactive(self, entry_type: str, entry_id: str, label: str) -> Optional[str]:
-        """Triggers a Colab upload widget to attach a file to an entry."""
+        """Triggers a Colab upload widget and renames file based on IDs."""
         if not IN_COLAB:
-            print("Interactive upload only available in Google Colab.")
+            print("❌ Interactive upload only available in Google Colab.")
             return None
 
-        print(f"📤 Uploading '{label}' for {entry_id}...")
+        print(f"📤 Select file for '{label}' (Entry: {entry_id})...")
         uploaded = colab_files.upload()
+        
         if not uploaded:
-            print("Upload cancelled.")
+            print("🚫 Upload cancelled.")
             return None
 
-        # Get the first uploaded file
+        # Process the uploaded file
         temp_filename = list(uploaded.keys())[0]
         
-        # Use the existing logic to move it to the right place
-        return self.add_related_file(entry_type, entry_id, label, temp_filename)
+        try:
+            # Transfer to Drive using the strict naming logic
+            rel_path = self.add_related_file(entry_type, entry_id, label, temp_filename)
+            return rel_path
+        finally:
+            # Clean up the local Colab /content/ folder
+            if os.path.exists(temp_filename):
+                os.remove(temp_filename)
+                
     def download_related_file(self, entry_type: str, entry_id: str, label: str, dest_folder: str = "/content/") -> str:
         """Copies a related file from Google Drive to the local Colab environment."""
         import shutil
