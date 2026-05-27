@@ -289,7 +289,7 @@ class OpenDatasetStore:
             raise ValueError(f"Error reading CSV: {e}")
 
         # 3. Determine entry ID and timestamp
-        ts = self._generate_timestamp()
+        ts = timestamp if timestamp is not None else self._generate_timestamp()
         index_path = self._get_entry_index_path(entry_type)
         index_data = self._load_json(index_path)
 
@@ -347,7 +347,8 @@ class OpenDatasetStore:
         Returns:
             The entry ID.
         """
-        ts = self._generate_timestamp()
+        
+        ts = timestamp if timestamp is not None else self._generate_timestamp()
         index_path = self._get_entry_index_path(entry_type)
         index_data = self._load_json(index_path)
 
