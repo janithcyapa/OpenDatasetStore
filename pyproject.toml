@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "open_dataset_store"
+version = "0.1.0"
+description = "A universal, plug-and-play manager for organising research datasets on Google Drive."
+readme = "README.md"
+requires-python = ">=3.7"
+dependencies = [
+    "pandas",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/janithcyapa/OpenDatasetStore"
+"Bug Tracker" = "https://github.com/janithcyapa/OpenDatasetStore/issues"
