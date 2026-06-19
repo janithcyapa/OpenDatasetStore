@@ -1,5 +1,5 @@
-import os
 import json
+import fsspec
 from datetime import datetime, timezone
 from typing import Dict
 
@@ -7,41 +7,50 @@ class BaseOpenDatasetStore:
     def __init__(
         self,
         base_dir: str,
+        backend: str = "local",
         entry_id_format: str = "{type}_{num:06d}",
         entity_id_format: str = "ent_{num:04d}",
         raw_filename_format: str = "{entry_id}_{entity_id}_{ts}_{original}",
         processed_filename_format: str = "{entry_id}_{tag}.parquet",
     ):
-        self.base_dir = base_dir
+        self.backend = backend
+        self.base_dir = base_dir.rstrip('/')
         self.entry_id_format_str = entry_id_format
         self.entity_id_format_str = entity_id_format
         self.raw_filename_format_str = raw_filename_format
         self.processed_filename_format_str = processed_filename_format
 
-        os.makedirs(self.base_dir, exist_ok=True)
-        self.index_dir = os.path.join(self.base_dir, "index")
-        self.raw_dir = os.path.join(self.base_dir, "raw_data")
-        self.processed_dir = os.path.join(self.base_dir, "processed_data")
-        os.makedirs(self.index_dir, exist_ok=True)
-        os.makedirs(self.raw_dir, exist_ok=True)
-        os.makedirs(self.processed_dir, exist_ok=True)
+        if self.backend == "gdrive":
+            self.fs = fsspec.filesystem("gdrive")
+        else:
+            self.fs = fsspec.filesystem("file")
 
-        print(f"Store initialised at: {self.base_dir}")
+        # ensure directory structure exists
+        self.fs.makedirs(self.base_dir, exist_ok=True)
+        self.index_dir = f"{self.base_dir}/index"
+        self.raw_dir = f"{self.base_dir}/raw_data"
+        self.processed_dir = f"{self.base_dir}/processed_data"
+        
+        self.fs.makedirs(self.index_dir, exist_ok=True)
+        self.fs.makedirs(self.raw_dir, exist_ok=True)
+        self.fs.makedirs(self.processed_dir, exist_ok=True)
+
+        print(f"Store initialised at: {self.base_dir} (Backend: {self.backend})")
 
     def _get_entity_index_path(self, entity_type: str) -> str:
-        return os.path.join(self.index_dir, f"entities_{entity_type}.json")
+        return f"{self.index_dir}/entities_{entity_type}.json"
 
     def _get_entry_index_path(self, entry_type: str) -> str:
-        return os.path.join(self.index_dir, f"entries_{entry_type}.json")
+        return f"{self.index_dir}/entries_{entry_type}.json"
 
     def _load_json(self, path: str) -> Dict:
-        if os.path.exists(path):
-            with open(path, "r") as f:
+        if self.fs.exists(path):
+            with self.fs.open(path, "r") as f:
                 return json.load(f)
         return {}
 
     def _save_json(self, path: str, data: Dict) -> None:
-        with open(path, "w") as f:
+        with self.fs.open(path, "w") as f:
             json.dump(data, f, indent=2)
 
     def _generate_timestamp(self) -> str:

@@ -1,8 +1,10 @@
 import os
+import io
 import pandas as pd
 from typing import Dict, Optional
 
 try:
+    # pyrefly: ignore [missing-import]
     from google.colab import files as colab_files
     IN_COLAB = True
 except ImportError:
@@ -18,23 +20,28 @@ class EntryManagementMixin:
         timestamp: Optional[str] = None,
         **metadata,
     ) -> str:
-        if not IN_COLAB:
-            raise RuntimeError(
-                "Interactive upload requires Google Colab. Use create_entry_from_df() instead."
-            )
-
-        print(f"📂 Please select the raw CSV file for entry type '{entry_type}'...")
-        uploaded = colab_files.upload()
-        if not uploaded:
-            print("Upload cancelled.")
-            return
-        original_filename = list(uploaded.keys())[0]
-        raw_bytes = uploaded[original_filename]
-
-        try:
-            df = pd.read_csv(pd.io.common.BytesIO(raw_bytes))
-        except Exception as e:
-            raise ValueError(f"Error reading CSV: {e}")
+        if IN_COLAB:
+            print(f"📂 Please select the raw CSV file for entry type '{entry_type}'...")
+            uploaded = colab_files.upload()
+            if not uploaded:
+                print("Upload cancelled.")
+                return
+            original_filename = list(uploaded.keys())[0]
+            raw_bytes = uploaded[original_filename]
+            try:
+                df = pd.read_csv(io.BytesIO(raw_bytes))
+            except Exception as e:
+                raise ValueError(f"Error reading CSV: {e}")
+        else:
+            local_path = input(f"📂 Enter the absolute path to your local CSV file for entry type '{entry_type}': ").strip()
+            if not os.path.exists(local_path):
+                print(f"🚫 File not found: {local_path}")
+                return
+            original_filename = os.path.basename(local_path)
+            try:
+                df = pd.read_csv(local_path)
+            except Exception as e:
+                raise ValueError(f"Error reading CSV: {e}")
 
         ts = timestamp if timestamp is not None else self._generate_timestamp()
         index_path = self._get_entry_index_path(entry_type)
@@ -47,12 +54,14 @@ class EntryManagementMixin:
                 raise ValueError(f"Entry ID '{entry_id}' already exists in {entry_type}.")
 
         raw_filename = self._build_raw_filename(entry_id, entity_id, ts, original_filename)
-        raw_save_dir = os.path.join(self.raw_dir, entry_type)
-        os.makedirs(raw_save_dir, exist_ok=True)
-        raw_full_path = os.path.join(raw_save_dir, raw_filename)
-        df.to_csv(raw_full_path, index=False)
+        raw_save_dir = f"{self.raw_dir}/{entry_type}"
+        self.fs.makedirs(raw_save_dir, exist_ok=True)
+        raw_full_path = f"{raw_save_dir}/{raw_filename}"
+        
+        with self.fs.open(raw_full_path, "wb") as f:
+            df.to_csv(f, index=False)
 
-        raw_rel_path = os.path.relpath(raw_full_path, self.base_dir)
+        raw_rel_path = raw_full_path.replace(self.base_dir + "/", "", 1)
         entry_meta = {
             "entity_id": entity_id,
             "description": description,
@@ -88,12 +97,14 @@ class EntryManagementMixin:
                 raise ValueError(f"Entry ID '{entry_id}' already exists in {entry_type}.")
 
         raw_filename = self._build_raw_filename(entry_id, entity_id, ts, original_filename)
-        raw_save_dir = os.path.join(self.raw_dir, entry_type)
-        os.makedirs(raw_save_dir, exist_ok=True)
-        raw_full_path = os.path.join(raw_save_dir, raw_filename)
-        df.to_csv(raw_full_path, index=False)
+        raw_save_dir = f"{self.raw_dir}/{entry_type}"
+        self.fs.makedirs(raw_save_dir, exist_ok=True)
+        raw_full_path = f"{raw_save_dir}/{raw_filename}"
+        
+        with self.fs.open(raw_full_path, "wb") as f:
+            df.to_csv(f, index=False)
 
-        raw_rel_path = os.path.relpath(raw_full_path, self.base_dir)
+        raw_rel_path = raw_full_path.replace(self.base_dir + "/", "", 1)
         entry_meta = {
             "entity_id": entity_id,
             "description": description,
@@ -130,10 +141,11 @@ class EntryManagementMixin:
 
     def get_entry_raw_data(self, entry_type: str, entry_id: str) -> pd.DataFrame:
         meta = self.get_entry(entry_type, entry_id)
-        raw_path = os.path.join(self.base_dir, meta["raw_csv_path"])
-        if not os.path.exists(raw_path):
+        raw_path = f"{self.base_dir}/{meta['raw_csv_path']}"
+        if not self.fs.exists(raw_path):
             raise FileNotFoundError(f"Raw file not found: {raw_path}")
-        return pd.read_csv(raw_path)
+        with self.fs.open(raw_path, "rb") as f:
+            return pd.read_csv(f)
 
     def get_entry_processed_data(self, entry_type: str, entry_id: str, tag: str) -> pd.DataFrame:
         meta = self.get_entry(entry_type, entry_id)
@@ -141,10 +153,11 @@ class EntryManagementMixin:
         if tag not in proc_files:
             raise KeyError(f"No processed data with tag '{tag}' for entry '{entry_id}'.")
         proc_rel_path = proc_files[tag]
-        proc_full_path = os.path.join(self.base_dir, proc_rel_path)
-        if not os.path.exists(proc_full_path):
+        proc_full_path = f"{self.base_dir}/{proc_rel_path}"
+        if not self.fs.exists(proc_full_path):
             raise FileNotFoundError(f"Processed file not found: {proc_full_path}")
-        return pd.read_parquet(proc_full_path)
+        with self.fs.open(proc_full_path, "rb") as f:
+            return pd.read_parquet(f)
 
     def add_processed_data(
         self,
@@ -155,13 +168,14 @@ class EntryManagementMixin:
         **metadata,
     ) -> str:
         meta = self.get_entry(entry_type, entry_id)
-        proc_save_dir = os.path.join(self.processed_dir, entry_type, tag)
-        os.makedirs(proc_save_dir, exist_ok=True)
+        proc_save_dir = f"{self.processed_dir}/{entry_type}/{tag}"
+        self.fs.makedirs(proc_save_dir, exist_ok=True)
         filename = self._build_processed_filename(entry_id, tag)
-        full_path = os.path.join(proc_save_dir, filename)
-        rel_path = os.path.relpath(full_path, self.base_dir)
+        full_path = f"{proc_save_dir}/{filename}"
+        rel_path = full_path.replace(self.base_dir + "/", "", 1)
 
-        df.to_parquet(full_path, index=False)
+        with self.fs.open(full_path, "wb") as f:
+            df.to_parquet(f, index=False)
 
         meta.setdefault("processed_files", {})[tag] = rel_path
         meta.setdefault("processed_metadata", {})[tag] = metadata
@@ -185,9 +199,10 @@ class EntryManagementMixin:
         if tag not in meta.get("processed_files", {}):
             raise KeyError(f"Tag '{tag}' does not exist for entry '{entry_id}'. Use add_processed_data first.")
         old_rel_path = meta["processed_files"][tag]
-        old_full_path = os.path.join(self.base_dir, old_rel_path)
+        old_full_path = f"{self.base_dir}/{old_rel_path}"
 
-        df.to_parquet(old_full_path, index=False)
+        with self.fs.open(old_full_path, "wb") as f:
+            df.to_parquet(f, index=False)
         meta.setdefault("processed_metadata", {})[tag] = metadata
 
         index_path = self._get_entry_index_path(entry_type)
@@ -238,15 +253,15 @@ class EntryManagementMixin:
 
         meta = index_data[entry_id]
 
-        raw_path = os.path.join(self.base_dir, meta["raw_csv_path"])
-        if os.path.exists(raw_path):
-            os.remove(raw_path)
+        raw_path = f"{self.base_dir}/{meta['raw_csv_path']}"
+        if self.fs.exists(raw_path):
+            self.fs.rm(raw_path)
             print(f"  - Deleted raw file: {meta['raw_csv_path']}")
 
         for tag, rel_path in meta.get("processed_files", {}).items():
-            full_path = os.path.join(self.base_dir, rel_path)
-            if os.path.exists(full_path):
-                os.remove(full_path)
+            full_path = f"{self.base_dir}/{rel_path}"
+            if self.fs.exists(full_path):
+                self.fs.rm(full_path)
                 print(f"  - Deleted processed [{tag}]: {rel_path}")
 
         del index_data[entry_id]
