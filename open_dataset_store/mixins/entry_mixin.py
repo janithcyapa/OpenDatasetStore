@@ -14,7 +14,7 @@ class EntryManagementMixin:
     def create_entry_interactive(
         self,
         entry_type: str,
-        entity_id: str,
+        entity_id: Optional[str] = None,
         description: str = "",
         entry_id: Optional[str] = None,
         timestamp: Optional[str] = None,
@@ -78,8 +78,8 @@ class EntryManagementMixin:
     def create_entry_from_df(
         self,
         entry_type: str,
-        entity_id: str,
         df: pd.DataFrame,
+        entity_id: Optional[str] = None,
         original_filename: str = "data.csv",
         entry_id: Optional[str] = None,
         timestamp: Optional[str] = None,

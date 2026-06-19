@@ -20,9 +20,9 @@ df = pd.DataFrame({"A": [1, 2]})
 
 entry_id = store.create_entry_from_df(
     entry_type="experiments",
-    entity_id="sub_001",
     df=df,
     original_filename="local_file.csv"
+    # entity_id is optional: entity_id="sub_001"
 )
 ```
 

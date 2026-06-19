@@ -1,7 +1,7 @@
 import json
 import fsspec
 from datetime import datetime, timezone
-from typing import Dict
+from typing import Dict, Optional
 
 
 try:
@@ -99,11 +99,12 @@ class BaseOpenDatasetStore:
         return self.entity_id_format_str.format(type=entity_type, num=new_counter)
 
     def _build_raw_filename(
-        self, entry_id: str, entity_id: str, timestamp: str, original_name: str
+        self, entry_id: str, entity_id: Optional[str], timestamp: str, original_name: str
     ) -> str:
+        e_id = entity_id if entity_id is not None else "none"
         return self.raw_filename_format_str.format(
             entry_id=entry_id,
-            entity_id=entity_id,
+            entity_id=e_id,
             ts=timestamp,
             original=original_name,
         )
