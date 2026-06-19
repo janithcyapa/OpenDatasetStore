@@ -20,3 +20,20 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/janithcyapa/OpenDatasetStore"
 "Bug Tracker" = "https://github.com/janithcyapa/OpenDatasetStore/issues"
+
+[tool.bumpver]
+current_version = "0.1.0"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message = "bump version {old_version} -> {new_version}"
+commit = false
+tag = false
+push = false
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    'current_version = "{version}"',
+    'version = "{version}"',
+]
+"open_dataset_store/__init__.py" = [
+    '__version__ = "{version}"',
+]
