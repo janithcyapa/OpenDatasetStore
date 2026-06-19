@@ -15,28 +15,43 @@ class BaseOpenDatasetStore:
         **fsspec_kwargs,
     ):
         self.backend = backend
-        self.base_dir = base_dir.rstrip('/')
         self.entry_id_format_str = entry_id_format
         self.entity_id_format_str = entity_id_format
         self.raw_filename_format_str = raw_filename_format
         self.processed_filename_format_str = processed_filename_format
 
         if self.backend == "gdrive":
+            self.base_dir = base_dir.replace("gdrive://", "").rstrip('/')
             self.fs = fsspec.filesystem("gdrive", **fsspec_kwargs)
         else:
+            self.base_dir = base_dir.replace("file://", "").rstrip('/')
             self.fs = fsspec.filesystem("file", **fsspec_kwargs)
 
+        if self.base_dir:
+            self.index_dir = f"{self.base_dir}/index"
+            self.raw_dir = f"{self.base_dir}/raw_data"
+            self.processed_dir = f"{self.base_dir}/processed_data"
+        else:
+            self.index_dir = "index"
+            self.raw_dir = "raw_data"
+            self.processed_dir = "processed_data"
+
         # ensure directory structure exists
-        self.fs.makedirs(self.base_dir, exist_ok=True)
-        self.index_dir = f"{self.base_dir}/index"
-        self.raw_dir = f"{self.base_dir}/raw_data"
-        self.processed_dir = f"{self.base_dir}/processed_data"
+        if self.base_dir:
+            self.fs.makedirs(self.base_dir, exist_ok=True)
+
         
         self.fs.makedirs(self.index_dir, exist_ok=True)
         self.fs.makedirs(self.raw_dir, exist_ok=True)
         self.fs.makedirs(self.processed_dir, exist_ok=True)
 
         print(f"Store initialised at: {self.base_dir} (Backend: {self.backend})")
+
+    def _full_path(self, rel_path: str) -> str:
+        return f"{self.base_dir}/{rel_path}" if self.base_dir else rel_path
+
+    def _rel_path(self, full_path: str) -> str:
+        return full_path.replace(self.base_dir + "/", "", 1) if self.base_dir else full_path
 
     def _get_entity_index_path(self, entity_type: str) -> str:
         return f"{self.index_dir}/entities_{entity_type}.json"

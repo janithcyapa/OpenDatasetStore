@@ -61,7 +61,7 @@ class EntryManagementMixin:
         with self.fs.open(raw_full_path, "wb") as f:
             df.to_csv(f, index=False)
 
-        raw_rel_path = raw_full_path.replace(self.base_dir + "/", "", 1)
+        raw_rel_path = self._rel_path(raw_full_path)
         entry_meta = {
             "entity_id": entity_id,
             "description": description,
@@ -104,7 +104,7 @@ class EntryManagementMixin:
         with self.fs.open(raw_full_path, "wb") as f:
             df.to_csv(f, index=False)
 
-        raw_rel_path = raw_full_path.replace(self.base_dir + "/", "", 1)
+        raw_rel_path = self._rel_path(raw_full_path)
         entry_meta = {
             "entity_id": entity_id,
             "description": description,
@@ -141,7 +141,7 @@ class EntryManagementMixin:
 
     def get_entry_raw_data(self, entry_type: str, entry_id: str) -> pd.DataFrame:
         meta = self.get_entry(entry_type, entry_id)
-        raw_path = f"{self.base_dir}/{meta['raw_csv_path']}"
+        raw_path = self._full_path(meta['raw_csv_path'])
         if not self.fs.exists(raw_path):
             raise FileNotFoundError(f"Raw file not found: {raw_path}")
         with self.fs.open(raw_path, "rb") as f:
@@ -153,7 +153,7 @@ class EntryManagementMixin:
         if tag not in proc_files:
             raise KeyError(f"No processed data with tag '{tag}' for entry '{entry_id}'.")
         proc_rel_path = proc_files[tag]
-        proc_full_path = f"{self.base_dir}/{proc_rel_path}"
+        proc_full_path = self._full_path(proc_rel_path)
         if not self.fs.exists(proc_full_path):
             raise FileNotFoundError(f"Processed file not found: {proc_full_path}")
         with self.fs.open(proc_full_path, "rb") as f:
@@ -172,7 +172,7 @@ class EntryManagementMixin:
         self.fs.makedirs(proc_save_dir, exist_ok=True)
         filename = self._build_processed_filename(entry_id, tag)
         full_path = f"{proc_save_dir}/{filename}"
-        rel_path = full_path.replace(self.base_dir + "/", "", 1)
+        rel_path = self._rel_path(full_path)
 
         with self.fs.open(full_path, "wb") as f:
             df.to_parquet(f, index=False)
@@ -199,7 +199,7 @@ class EntryManagementMixin:
         if tag not in meta.get("processed_files", {}):
             raise KeyError(f"Tag '{tag}' does not exist for entry '{entry_id}'. Use add_processed_data first.")
         old_rel_path = meta["processed_files"][tag]
-        old_full_path = f"{self.base_dir}/{old_rel_path}"
+        old_full_path = self._full_path(old_rel_path)
 
         with self.fs.open(old_full_path, "wb") as f:
             df.to_parquet(f, index=False)
@@ -253,13 +253,13 @@ class EntryManagementMixin:
 
         meta = index_data[entry_id]
 
-        raw_path = f"{self.base_dir}/{meta['raw_csv_path']}"
+        raw_path = self._full_path(meta['raw_csv_path'])
         if self.fs.exists(raw_path):
             self.fs.rm(raw_path)
             print(f"  - Deleted raw file: {meta['raw_csv_path']}")
 
         for tag, rel_path in meta.get("processed_files", {}).items():
-            full_path = f"{self.base_dir}/{rel_path}"
+            full_path = self._full_path(rel_path)
             if self.fs.exists(full_path):
                 self.fs.rm(full_path)
                 print(f"  - Deleted processed [{tag}]: {rel_path}")

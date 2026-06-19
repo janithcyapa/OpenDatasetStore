@@ -18,12 +18,12 @@ class RelatedFilesMixin:
         entity_id = index_data[entry_id].get("entity_id", "unknown")
 
         ext = os.path.splitext(local_path)[1]
-        file_dir = f"{self.base_dir}/related_files/{entry_type}/{entry_id}"
+        file_dir = self._full_path(f"related_files/{entry_type}/{entry_id}")
         self.fs.makedirs(file_dir, exist_ok=True)
         
         dest_filename = f"{entry_id}_{entity_id}_{label}{ext}"
         dest_path = f"{file_dir}/{dest_filename}"
-        rel_path = dest_path.replace(self.base_dir + "/", "", 1)
+        rel_path = self._rel_path(dest_path)
 
         self.fs.put(local_path, dest_path)
 
@@ -61,7 +61,7 @@ class RelatedFilesMixin:
         if label not in related:
             raise KeyError(f"No related file with label '{label}' found for {entry_id}.")
         
-        drive_path = f"{self.base_dir}/{related[label]}"
+        drive_path = self._full_path(related[label])
         local_path = os.path.join(dest_folder, related[label].split("/")[-1])
         
         if not self.fs.exists(drive_path):
@@ -80,7 +80,7 @@ class RelatedFilesMixin:
             return
 
         rel_path = index_data[entry_id]["related_files"][label]
-        full_path = f"{self.base_dir}/{rel_path}"
+        full_path = self._full_path(rel_path)
 
         if self.fs.exists(full_path):
             self.fs.rm(full_path)
