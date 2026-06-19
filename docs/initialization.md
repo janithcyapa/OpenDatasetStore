@@ -28,6 +28,22 @@ from open_dataset_store import quick_start
 store = quick_start('gdrive://MyResearchData', backend='gdrive')
 ```
 
+## 4. Shared Folders (Bypassing Shortcuts)
+If you are collaborating with a team and the target dataset folder is a **Shared Folder**, creating a "Shortcut" in your root Drive will not work (shortcuts are treated as files, not folders). 
+
+Instead, you can bypass the shortcut entirely by extracting the **Folder ID** of the Shared Folder from its URL (e.g. `https://drive.google.com/drive/folders/1Gqd9XGcwvtkWpsygrdWPvjLr5cuYmyNr`) and passing it directly to the store:
+
+```python
+from open_dataset_store import quick_start
+
+# Set base_dir to empty string (or root) and provide the exact Folder ID
+store = quick_start(
+    base_dir='gdrive://', 
+    backend='gdrive', 
+    root_file_id='1Gqd9XGcwvtkWpsygrdWPvjLr5cuYmyNr'
+)
+```
+
 ### Authentication Details
 The `gdrive` backend uses a generic set of Google API credentials to get you started immediately. When you run it for the first time, your terminal will print:
 `Please visit this URL to authorize this application...`

@@ -12,13 +12,15 @@ class OpenDatasetStore(
     """Main class managing the dataset store on Google Drive."""
     pass
 
-def quick_start(base_dir: str, backend: str = "local") -> OpenDatasetStore:
+def quick_start(base_dir: str, backend: str = "local", **kwargs) -> OpenDatasetStore:
     """Create a store instance with sensible defaults.
 
     Example:
         store = quick_start('/content/drive/MyDrive/MyResearch', backend='local')
         # OR 
         store = quick_start('gdrive://MyResearch', backend='gdrive')
+        # Shared Folder:
+        store = quick_start('gdrive://', backend='gdrive', root_file_id='1Gqd9XGcwvtkWpsygrdWPvjLr5cuYmyNr')
     """
     return OpenDatasetStore(
         base_dir=base_dir,
@@ -27,4 +29,5 @@ def quick_start(base_dir: str, backend: str = "local") -> OpenDatasetStore:
         entity_id_format="entity_{num:04d}",
         raw_filename_format="{entry_id}_{entity_id}_{ts}_{original}",
         processed_filename_format="{entry_id}_{tag}.parquet",
+        **kwargs,
     )

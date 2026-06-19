@@ -12,6 +12,7 @@ class BaseOpenDatasetStore:
         entity_id_format: str = "ent_{num:04d}",
         raw_filename_format: str = "{entry_id}_{entity_id}_{ts}_{original}",
         processed_filename_format: str = "{entry_id}_{tag}.parquet",
+        **fsspec_kwargs,
     ):
         self.backend = backend
         self.base_dir = base_dir.rstrip('/')
@@ -21,9 +22,9 @@ class BaseOpenDatasetStore:
         self.processed_filename_format_str = processed_filename_format
 
         if self.backend == "gdrive":
-            self.fs = fsspec.filesystem("gdrive")
+            self.fs = fsspec.filesystem("gdrive", **fsspec_kwargs)
         else:
-            self.fs = fsspec.filesystem("file")
+            self.fs = fsspec.filesystem("file", **fsspec_kwargs)
 
         # ensure directory structure exists
         self.fs.makedirs(self.base_dir, exist_ok=True)
