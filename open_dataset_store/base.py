@@ -3,6 +3,20 @@ import fsspec
 from datetime import datetime, timezone
 from typing import Dict
 
+
+try:
+    from gdrive_fsspec.core import GoogleDriveFileSystem
+    _original_kw = GoogleDriveFileSystem._drive_kw
+    def _patched_kw(self):
+        kw = _original_kw(self)
+        kw["supportsAllDrives"] = True
+        kw["includeItemsFromAllDrives"] = True
+        return kw
+    GoogleDriveFileSystem._drive_kw = _patched_kw
+except ImportError:
+    pass
+
+
 class BaseOpenDatasetStore:
     def __init__(
         self,
