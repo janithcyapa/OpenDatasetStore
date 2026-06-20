@@ -52,14 +52,21 @@ class BaseOpenDatasetStore:
 
         # ensure directory structure exists
         if self.base_dir:
-            self.fs.makedirs(self.base_dir, exist_ok=True)
+            self._safe_makedirs(self.base_dir)
 
         
-        self.fs.makedirs(self.index_dir, exist_ok=True)
-        self.fs.makedirs(self.raw_dir, exist_ok=True)
-        self.fs.makedirs(self.processed_dir, exist_ok=True)
+        self._safe_makedirs(self.index_dir)
+        self._safe_makedirs(self.raw_dir)
+        self._safe_makedirs(self.processed_dir)
 
         print(f"Store initialised at: {self.base_dir} (Backend: {self.backend})")
+
+    def _safe_makedirs(self, path: str) -> None:
+        """makedirs wrapper that handles gdrive_fsspec not respecting exist_ok."""
+        try:
+            self.fs.makedirs(path, exist_ok=True)
+        except FileExistsError:
+            pass
 
     def _full_path(self, rel_path: str) -> str:
         return f"{self.base_dir}/{rel_path}" if self.base_dir else rel_path

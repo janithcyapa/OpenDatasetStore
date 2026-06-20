@@ -55,11 +55,18 @@ class EntryManagementMixin:
 
         raw_filename = self._build_raw_filename(entry_id, entity_id, ts, original_filename)
         raw_save_dir = f"{self.raw_dir}/{entry_type}"
-        self.fs.makedirs(raw_save_dir, exist_ok=True)
+        self._safe_makedirs(raw_save_dir)
         raw_full_path = f"{raw_save_dir}/{raw_filename}"
         
-        with self.fs.open(raw_full_path, "wb") as f:
-            df.to_csv(f, index=False)
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
+            tmp_path = tmp.name
+        try:
+            df.to_csv(tmp_path, index=False)
+            self.fs.put(tmp_path, raw_full_path)
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
 
         raw_rel_path = self._rel_path(raw_full_path)
         entry_meta = {
@@ -98,11 +105,18 @@ class EntryManagementMixin:
 
         raw_filename = self._build_raw_filename(entry_id, entity_id, ts, original_filename)
         raw_save_dir = f"{self.raw_dir}/{entry_type}"
-        self.fs.makedirs(raw_save_dir, exist_ok=True)
+        self._safe_makedirs(raw_save_dir)
         raw_full_path = f"{raw_save_dir}/{raw_filename}"
         
-        with self.fs.open(raw_full_path, "wb") as f:
-            df.to_csv(f, index=False)
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
+            tmp_path = tmp.name
+        try:
+            df.to_csv(tmp_path, index=False)
+            self.fs.put(tmp_path, raw_full_path)
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
 
         raw_rel_path = self._rel_path(raw_full_path)
         entry_meta = {
@@ -169,13 +183,20 @@ class EntryManagementMixin:
     ) -> str:
         meta = self.get_entry(entry_type, entry_id)
         proc_save_dir = f"{self.processed_dir}/{entry_type}/{tag}"
-        self.fs.makedirs(proc_save_dir, exist_ok=True)
+        self._safe_makedirs(proc_save_dir)
         filename = self._build_processed_filename(entry_id, tag)
         full_path = f"{proc_save_dir}/{filename}"
         rel_path = self._rel_path(full_path)
 
-        with self.fs.open(full_path, "wb") as f:
-            df.to_parquet(f, index=False)
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".parquet") as tmp:
+            tmp_path = tmp.name
+        try:
+            df.to_parquet(tmp_path, index=False)
+            self.fs.put(tmp_path, full_path)
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
 
         meta.setdefault("processed_files", {})[tag] = rel_path
         meta.setdefault("processed_metadata", {})[tag] = metadata
@@ -201,8 +222,15 @@ class EntryManagementMixin:
         old_rel_path = meta["processed_files"][tag]
         old_full_path = self._full_path(old_rel_path)
 
-        with self.fs.open(old_full_path, "wb") as f:
-            df.to_parquet(f, index=False)
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".parquet") as tmp:
+            tmp_path = tmp.name
+        try:
+            df.to_parquet(tmp_path, index=False)
+            self.fs.put(tmp_path, old_full_path)
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
         meta.setdefault("processed_metadata", {})[tag] = metadata
 
         index_path = self._get_entry_index_path(entry_type)

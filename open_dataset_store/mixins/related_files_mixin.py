@@ -19,7 +19,7 @@ class RelatedFilesMixin:
 
         ext = os.path.splitext(local_path)[1]
         file_dir = self._full_path(f"related_files/{entry_type}/{entry_id}")
-        self.fs.makedirs(file_dir, exist_ok=True)
+        self._safe_makedirs(file_dir)
         
         dest_filename = f"{entry_id}_{entity_id}_{label}{ext}"
         dest_path = f"{file_dir}/{dest_filename}"
