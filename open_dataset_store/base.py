@@ -28,6 +28,18 @@ class BaseOpenDatasetStore:
         processed_filename_format: str = "{entry_id}_{tag}.parquet",
         **fsspec_kwargs,
     ):
+        """
+        Initializes the Dataset Store.
+
+        Args:
+            base_dir (str): The root directory for the dataset store (e.g., 'path/to/dataset', 'gdrive://MyDataset').
+            backend (str, optional): The storage backend to use. Options are 'local' or 'gdrive'. Defaults to 'local'.
+            entry_id_format (str, optional): The format string for generating entry IDs. Defaults to "{type}_{num:06d}".
+            entity_id_format (str, optional): The format string for generating entity IDs. Defaults to "ent_{num:04d}".
+            raw_filename_format (str, optional): The format string for naming raw data files. Defaults to "{entry_id}_{entity_id}_{ts}_{original}".
+            processed_filename_format (str, optional): The format string for naming processed data files. Defaults to "{entry_id}_{tag}.parquet".
+            **fsspec_kwargs: Additional keyword arguments passed to the underlying fsspec filesystem (e.g., authentication kwargs).
+        """
         self.backend = backend
         self.entry_id_format_str = entry_id_format
         self.entity_id_format_str = entity_id_format

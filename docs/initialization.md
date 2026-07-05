@@ -56,3 +56,12 @@ If you plan to use this heavily in production, you can supply your own `client_s
 3. Go to "Credentials", create an **OAuth client ID** (Desktop Application).
 4. Download the JSON file, rename it to `client_secrets.json`, and place it in your working directory alongside your script. 
 
+## 5. Dataset Summary
+Once you have initialized the store, you can get a quick overview of all entities and entries currently stored in your dataset by calling the `summary()` method:
+
+```python
+store = quick_start('./my_local_dataset', backend='local')
+summary_stats = store.summary()
+```
+
+This will print a formatted summary to your console detailing the base directory, backend in use, and the counts for each entity and entry type. It also returns a dictionary containing these statistics for programmatic use.
