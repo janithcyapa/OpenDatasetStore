@@ -7,6 +7,7 @@ import plotly.figure_factory as ff
 
 # Set global theme natively for the package
 pio.templates.default = "plotly_dark"
+pio.renderers.default = "colab+vscode+notebook_connected"
 
 def set_plot_theme(theme_name: str = "plotly_dark"):
     """Easily switch the global Plotly theme for all visualisations."""
