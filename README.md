@@ -17,6 +17,8 @@ We have split the documentation into comprehensive guides. Please refer to the s
 4. [Entries](docs/entries.md) - How to manage raw datasets and recordings.
 5. [Related Files](docs/related_files.md) - How to handle large non-tabular files like videos.
 6. [Processed Data](docs/processed_data.md) - How to link processed Parquet data back to your entries.
+7. [Data Inspection](docs/data_inspection.md) - Built-in data sanitation and inspection tools.
+8. [Plotting](docs/plotting.md) - How to use the global Plotly theme and DataPlotter utility.
 
 ---
 

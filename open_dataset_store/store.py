@@ -3,11 +3,14 @@ from .base import BaseOpenDatasetStore
 from .mixins.entity_mixin import EntityManagementMixin
 from .mixins.entry_mixin import EntryManagementMixin
 from .mixins.related_files_mixin import RelatedFilesMixin
+from .mixins.data_inspector_mixin import DataInspectorMixin
+import open_dataset_store.plotting # Initializes global plotly settings
 
 class OpenDatasetStore(
     EntityManagementMixin,
     EntryManagementMixin,
     RelatedFilesMixin,
+    DataInspectorMixin,
     BaseOpenDatasetStore,
 ):
     """
