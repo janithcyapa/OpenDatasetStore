@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "open_dataset_store"
-version = "1.1.1"
+version = "1.1.2"
 description = "A universal, plug-and-play manager for organising research datasets on Google Drive."
 readme = "README.md"
 requires-python = ">=3.7"
@@ -25,7 +25,7 @@ classifiers = [
 "Bug Tracker" = "https://github.com/janithcyapa/OpenDatasetStore/issues"
 
 [tool.bumpver]
-current_version = "1.1.1"
+current_version = "1.1.2"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 commit = false
