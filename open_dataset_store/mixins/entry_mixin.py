@@ -192,7 +192,7 @@ class EntryManagementMixin:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".parquet") as tmp:
             tmp_path = tmp.name
         try:
-            df.to_parquet(tmp_path, index=False)
+            df.to_parquet(tmp_path,engine='fastparquet', index=False)
             self.fs.put(tmp_path, full_path)
         finally:
             if os.path.exists(tmp_path):
@@ -226,7 +226,7 @@ class EntryManagementMixin:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".parquet") as tmp:
             tmp_path = tmp.name
         try:
-            df.to_parquet(tmp_path, index=False)
+            df.to_parquet(tmp_path,engine='fastparquet', index=False)
             self.fs.put(tmp_path, old_full_path)
         finally:
             if os.path.exists(tmp_path):

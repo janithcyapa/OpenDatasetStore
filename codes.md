@@ -8,4 +8,6 @@ bumpver update --minor
 # Bump major (0.1.0 -> 1.0.0)
 bumpver update --major
 
+
+pip install -e .
 ```
