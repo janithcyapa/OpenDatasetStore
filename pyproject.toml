@@ -12,7 +12,8 @@ dependencies = [
     "pandas",
     "fsspec",
     "pydrive2[fsspec]",
-    "google-api-python-client"
+    "google-api-python-client",
+    "fastparquet"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",

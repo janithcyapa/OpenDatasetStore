@@ -68,7 +68,9 @@
               "type": "file-explorer",
               "state": {
                 "sortOrder": "alphabetical",
-                "autoReveal": false
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
               },
               "icon": "lucide-folder-closed",
               "title": "Files"
@@ -186,9 +188,9 @@
   },
   "active": "17e3e1d6126fe462",
   "lastOpenFiles": [
-    "data_inspection.md",
-    "initialization.md",
     "installation.md",
+    "initialization.md",
+    "data_inspection.md",
     "related_files.md",
     "Untitled 1.canvas",
     "2026-07-13.md",
