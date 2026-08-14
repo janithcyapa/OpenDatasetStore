@@ -459,9 +459,9 @@ class DataInspectorMixin:
                     row=row, col=col_idx)
             elif pt == 'scatter':
                 fig.add_trace(
-                    go.Scatter(x=data_series.index, y=data_series, mode='markers',
-                               name=col_name, marker=dict(color=color, size=5,
-                               opacity=0.7), showlegend=False),
+                    go.Scatter(x=data_series.index, y=data_series, mode='lines',
+                               name=col_name, line=dict(color=color, width=2),
+                               opacity=0.8, showlegend=False),
                     row=row, col=col_idx)
             elif pt == 'histogram':
                 fig.add_trace(
