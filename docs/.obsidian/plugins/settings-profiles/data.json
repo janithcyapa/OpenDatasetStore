@@ -1,0 +1,19 @@
+{
+  "activeProfile": {
+    "name": "Default",
+    "modifiedAt": "2026-10-03T04:49:49.072Z"
+  },
+  "profileUpdate": true,
+  "profileUpdateDelay": 800,
+  "uiUpdate": true,
+  "uiUpdateInterval": 1000,
+  "devices": {
+    "a276d4f2c93287955d2efc6462a0ab3793a87737fd5e0028df08d52161f41931": "/home/jazz/.var/app/md.obsidian.Obsidian/data/obsidianplugins/Profiles"
+  },
+  "statusbarInteraction": {
+    "click": "auto",
+    "ctrl_click": "none",
+    "shift_click": "none",
+    "alt_click": "none"
+  }
+}

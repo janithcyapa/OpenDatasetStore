@@ -4,6 +4,22 @@
 
 All of these tools are accessible directly on your `store` instance.
 
+## Standalone Usage (Without Store)
+
+You can also use all of these inspection and visualization tools on any existing pandas DataFrame without initializing a full `OpenDatasetStore` instance. Simply import the `DataInspectorMixin` and create a standalone inspector:
+
+```python
+from open_dataset_store.mixins.data_inspector_mixin import DataInspectorMixin
+
+# Create a standalone inspector
+inspector = DataInspectorMixin()
+
+# Now you can use it on any existing pandas DataFrame
+inspector.get_df_summary(df)
+inspector.summary_plot(df)
+# etc.
+```
+
 ## 1. Summarizing Data
 
 To get a quick overview of a DataFrame's structure, missing values, and data types, you can use `get_df_summary`:

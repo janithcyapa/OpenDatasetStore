@@ -1,1 +1,6 @@
-open_dataset_store.egg-info/*
+# Match open_dataset_store.egg-info anywhere in the repository
+*.egg-info/
+open_dataset_store.egg-info/
+
+# Match __pycache__ directories at any depth
+__pycache__/

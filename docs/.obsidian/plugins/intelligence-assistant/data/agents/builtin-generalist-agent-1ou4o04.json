@@ -1,0 +1,43 @@
+{
+  "id": "builtin-generalist-agent",
+  "name": "Intelligence Assistant",
+  "description": "Advanced Obsidian Agent specializing in multi-step vault operations, spatial thinking, and long-term knowledge management.",
+  "icon": "✨",
+  "modelStrategy": {
+    "strategy": "default",
+    "modelId": "gpt-4o"
+  },
+  "temperature": 0.5,
+  "maxTokens": 6000,
+  "systemPromptId": "builtin-intelligence-assistant",
+  "contextWindow": 20,
+  "toolAccess": {
+    "sources": {
+      "builtin:builtin": [
+        "builtin:builtin:read_file",
+        "builtin:builtin:write_file",
+        "builtin:builtin:list_files",
+        "builtin:builtin:search_files",
+        "builtin:builtin:create_note",
+        "builtin:builtin:append_to_note",
+        "builtin:builtin:update_properties",
+        "builtin:builtin:read_canvas",
+        "builtin:builtin:update_canvas",
+        "builtin:builtin:read_pdf",
+        "builtin:builtin:find_notes_by_tag",
+        "builtin:builtin:resolve_link",
+        "builtin:builtin:make_link"
+      ]
+    }
+  },
+  "memoryType": "none",
+  "memoryConfig": {
+    "summaryInterval": 10,
+    "maxMemories": 50
+  },
+  "ragEnabled": true,
+  "webSearchEnabled": false,
+  "maxSteps": 25,
+  "createdAt": 1791003143087,
+  "updatedAt": 1791003143087
+}

@@ -1,5 +1,5 @@
-from typing import Dict, Any
-from .base import BaseOpenDatasetStore
+from typing import Dict, Any, Optional, Union
+from .base import BaseOpenDatasetStore, format_bytes
 from .mixins.entity_mixin import EntityManagementMixin
 from .mixins.entry_mixin import EntryManagementMixin
 from .mixins.related_files_mixin import RelatedFilesMixin
@@ -37,8 +37,13 @@ class OpenDatasetStore(
         ... )
     """
     
-    def summary(self, print_summary: bool = True) -> Dict[str, Any]:
-        """Provides a summary of the dataset store including entity and entry counts."""
+    def summary(
+        self,
+        print_summary: bool = True,
+        include_storage: bool = False,
+        **storage_kwargs,
+    ) -> Dict[str, Any]:
+        """Provides a summary of the dataset store including entity and entry counts, and optionally storage stats."""
         summary_data = {
             "store_base_dir": self.base_dir,
             "backend": self.backend,
@@ -72,6 +77,10 @@ class OpenDatasetStore(
                     summary_data["entries"][entry_type] = count
                     summary_data["total_entries"] += count
 
+        if include_storage:
+            storage_stats = self.storage_summary(print_summary=False, **storage_kwargs)
+            summary_data["storage"] = storage_stats
+
         if print_summary:
             print(f"📊 Dataset Store Summary")
             print(f"{'='*30}")
@@ -89,6 +98,23 @@ class OpenDatasetStore(
                 print("  (None)")
             for e_type, count in summary_data["entries"].items():
                 print(f"  - {e_type}: {count}")
+
+            if include_storage and "storage" in summary_data:
+                st = summary_data["storage"]
+                print(f"{'-'*30}")
+                print(f"Storage (Total: {st['total_size_formatted']})")
+                print(f"  - Total Files: {st['total_files']:,}")
+                print(f"  - Total Bytes: {st['total_size_bytes']:,}")
+                if "by_folder" in st and st["by_folder"]:
+                    print("  - Folders:")
+                    for f_name, f_info in st["by_folder"].items():
+                        disp_f = f_name if f_name != "." else ". (root)"
+                        print(f"    * {disp_f}: {f_info['size_formatted']} ({f_info['file_count']} files)")
+                if "by_file_type" in st and st["by_file_type"]:
+                    print("  - File Types:")
+                    for t_name, t_info in st["by_file_type"].items():
+                        print(f"    * {t_name}: {t_info['size_formatted']} ({t_info['file_count']} files)")
+
             print(f"{'='*30}")
 
         return summary_data
@@ -112,3 +138,55 @@ def quick_start(base_dir: str, backend: str = "local", **kwargs) -> OpenDatasetS
         processed_filename_format="{entry_id}_{tag}.parquet",
         **kwargs,
     )
+
+
+def storage_summary(
+    store_or_path: Any,
+    by_folder: bool = False,
+    depth: Optional[Union[int, str]] = None,
+    by_file_type: bool = False,
+    print_summary: bool = True,
+    unit: str = "auto",
+    backend: str = "local",
+    **kwargs,
+) -> Any:
+    """
+    Summarize dataset store storage size and file counts.
+
+    Can be invoked directly on an existing OpenDatasetStore instance or a directory path.
+
+    Parameters:
+        store_or_path: An OpenDatasetStore instance or a directory path string.
+        by_folder (bool, optional): If True, breaks down storage by folder.
+        depth (int or str, optional): Subfolder depth to group by (e.g. 1, 2, 'all', None).
+        by_file_type (bool, optional): If True, breaks down storage by file type.
+        print_summary (bool, optional): If True, prints a formatted summary.
+        unit (str, optional): Target size unit ('auto', 'B', 'KB', 'MB', 'GB', 'TB').
+        backend (str, optional): Storage backend if a path is provided ('local' or 'gdrive').
+        **kwargs: Additional options such as max_depth, folder_depth, as_df.
+
+    Returns:
+        dict or pandas.DataFrame: Storage summary data.
+    """
+    if hasattr(store_or_path, "storage_summary"):
+        return store_or_path.storage_summary(
+            by_folder=by_folder,
+            depth=depth,
+            by_file_type=by_file_type,
+            print_summary=print_summary,
+            unit=unit,
+            **kwargs,
+        )
+
+    store = quick_start(base_dir=str(store_or_path), backend=backend)
+    return store.storage_summary(
+        by_folder=by_folder,
+        depth=depth,
+        by_file_type=by_file_type,
+        print_summary=print_summary,
+        unit=unit,
+        **kwargs,
+    )
+
+
+file_size_summary = storage_summary

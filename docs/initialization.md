@@ -65,3 +65,98 @@ summary_stats = store.summary()
 ```
 
 This will print a formatted summary to your console detailing the base directory, backend in use, and the counts for each entity and entry type. It also returns a dictionary containing these statistics for programmatic use.
+
+You can also include storage statistics directly in this overview by passing `include_storage=True`:
+```python
+summary_stats = store.summary(include_storage=True)
+```
+
+## 6. Storage & File Size Summary
+To inspect the physical disk or Google Drive storage utilized by your dataset store, use `storage_summary()` (or its alias `file_size_summary()`):
+
+### 6.1 Total Size (Default / No Parameters)
+Calling `storage_summary()` with no parameters prints and returns the total storage footprint and file count:
+
+```python
+storage_stats = store.storage_summary()
+```
+
+Output:
+```text
+💾 Storage Summary
+=================================================================
+Base Directory : ./my_local_dataset
+Backend        : local
+Total Storage  : 14.25 MB (14,942,208 bytes)
+Total Files    : 42
+=================================================================
+```
+
+### 6.2 Folder Breakdown (`by_folder=True`, `depth`)
+Set `by_folder=True` to inspect storage distribution across directories. Use the `depth` parameter to specify how many subfolder levels to group by:
+
+- `depth=None` (default when `by_folder=True`): Summarizes across **all** subfolder levels.
+- `depth=1`: Groups storage by top-level directories (`raw_data`, `processed_data`, `index`, `related_files`, etc.).
+- `depth=2`, `depth=3`, etc.: Groups storage up to the specified folder depth.
+
+```python
+# All subfolder levels
+store.storage_summary(by_folder=True)
+
+# Top-level folders only (depth=1)
+store.storage_summary(by_folder=True, depth=1)
+
+# Depth can also be passed directly
+store.storage_summary(depth=2)
+```
+
+Output:
+```text
+📁 Folder Breakdown (Depth: 1)
+-----------------------------------------------------------------
+Folder                               Size    Files    % Store
+-----------------------------------------------------------------
+processed_data                    8.00 MB       10      56.1%
+raw_data                          4.50 MB       20      31.6%
+related_files                     1.70 MB        2      11.9%
+index                            50.00 KB       10       0.4%
+=================================================================
+```
+
+### 6.3 File Type Breakdown (`by_file_type=True`)
+Analyze storage consumption by file extension (e.g., `.parquet`, `.csv`, `.json`, `.mp4`):
+
+```python
+store.storage_summary(by_file_type=True)
+```
+
+Output:
+```text
+📄 File Type Breakdown
+-----------------------------------------------------------------
+File Type                            Size    Files    % Store
+-----------------------------------------------------------------
+.parquet                          8.00 MB       10      56.1%
+.csv                              4.50 MB       20      31.6%
+.mp4                              1.70 MB        2      11.9%
+.json                            50.00 KB       10       0.4%
+=================================================================
+```
+
+### 6.4 Combined Summary & Additional Options
+Combine both breakdowns or export results directly as a pandas DataFrame:
+
+```python
+# Both folder and file type breakdowns
+store.storage_summary(by_folder=True, depth=2, by_file_type=True)
+
+# Format sizes in specific units ('MB', 'GB', 'KB', 'B')
+store.storage_summary(by_folder=True, unit="MB")
+
+# Return results as a pandas DataFrame (without printing)
+df = store.storage_summary(by_folder=True, as_df=True, print_summary=False)
+
+# Standalone function invocation
+from open_dataset_store import storage_summary
+storage_summary('./my_local_dataset', by_folder=True, depth=1)
+```

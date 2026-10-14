@@ -1,0 +1,32 @@
+{
+  "id": "builtin-researcher",
+  "name": "🧬 Researcher (深度研究员)",
+  "description": "Specializes in comprehensive analysis, RAG-driven synthesis, and augmenting vault knowledge with web search.",
+  "icon": "microscope",
+  "systemPromptId": "prompt-researcher",
+  "modelStrategy": {
+    "strategy": "chat-view"
+  },
+  "toolAccess": {
+    "sources": {
+      "builtin:builtin": [
+        "builtin:builtin:read_file",
+        "builtin:builtin:search_files",
+        "builtin:builtin:append_to_note"
+      ]
+    }
+  },
+  "temperature": 0.7,
+  "maxTokens": 4000,
+  "memoryType": "none",
+  "memoryConfig": {
+    "summaryInterval": 10,
+    "maxMemories": 50
+  },
+  "ragEnabled": true,
+  "webSearchEnabled": true,
+  "maxSteps": 20,
+  "contextWindow": 50,
+  "createdAt": 1780157341493,
+  "updatedAt": 1780157341493
+}

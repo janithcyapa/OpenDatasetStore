@@ -1,0 +1,205 @@
+{
+  "version": 1,
+  "lastVersion": "0.0.22",
+  "providers": {
+    "defaultModel": "",
+    "titleSummaryModel": "",
+    "list": []
+  },
+  "conversations": {
+    "title": {
+      "mode": "first-message",
+      "prompt": "Generate a short, descriptive title (max 6 words) for this conversation:\n\n{conversation}\n\nTitle:"
+    },
+    "icon": {
+      "enabled": true
+    },
+    "defaultMode": "agent",
+    "activeId": null
+  },
+  "tools": {
+    "builtin": [
+      {
+        "type": "read_file",
+        "enabled": true
+      },
+      {
+        "type": "write_file",
+        "enabled": true
+      },
+      {
+        "type": "list_files",
+        "enabled": true
+      },
+      {
+        "type": "search_files",
+        "enabled": true
+      },
+      {
+        "type": "create_note",
+        "enabled": true
+      },
+      {
+        "type": "append_to_note",
+        "enabled": true
+      },
+      {
+        "type": "update_properties",
+        "enabled": true
+      },
+      {
+        "type": "read_canvas",
+        "enabled": true
+      },
+      {
+        "type": "update_canvas",
+        "enabled": true
+      },
+      {
+        "type": "read_pdf",
+        "enabled": true
+      },
+      {
+        "type": "find_notes_by_tag",
+        "enabled": true
+      },
+      {
+        "type": "resolve_link",
+        "enabled": true
+      },
+      {
+        "type": "make_link",
+        "enabled": true
+      }
+    ],
+    "mcp": {
+      "servers": [],
+      "registries": [
+        {
+          "name": "Official MCP Registry",
+          "url": "https://registry.modelcontextprotocol.io/v0/servers",
+          "enabled": true
+        }
+      ]
+    },
+    "openapi": [],
+    "cli": []
+  },
+  "rag": {
+    "enabled": true,
+    "enableCompression": false,
+    "retrieval": {
+      "chunkSize": 5000,
+      "chunkOverlap": 200,
+      "topK": 5,
+      "similarityThreshold": 0.3,
+      "relevanceScoreWeight": 0.7,
+      "searchType": "similarity",
+      "chunkingStrategy": "sentence",
+      "contextWindowLimit": 2000,
+      "filterByTag": [],
+      "excludeByTag": [
+        "exclude-from-rag",
+        "draft"
+      ]
+    },
+    "embedding": {
+      "model": "",
+      "vectorStore": "memory",
+      "embedChangedFiles": true,
+      "maxTokensPerChunk": 2048,
+      "minChunkSize": 50,
+      "batchSize": 10,
+      "indexingMode": "automatic",
+      "includeFileTypes": [
+        ".md"
+      ],
+      "excludeFileTypes": [
+        ".git/",
+        "node_modules/",
+        ".obsidian/"
+      ],
+      "excludeFolders": []
+    },
+    "caching": {
+      "enabled": false,
+      "cacheSize": 50
+    },
+    "reranking": {
+      "enabled": false,
+      "model": "cross-encoder"
+    },
+    "grader": {
+      "enabled": true,
+      "modelSource": "chat",
+      "model": "",
+      "promptTemplate": "",
+      "parallelProcessing": 5,
+      "thresholds": {
+        "relevance": 5,
+        "accuracy": 7,
+        "supportQuality": 6
+      }
+    }
+  },
+  "search": {
+    "web": {
+      "enabled": false,
+      "provider": "duckduckgo",
+      "maxResults": 5,
+      "autoTrigger": true,
+      "searchLanguage": "en",
+      "searchCountry": "US",
+      "timeRange": "any"
+    }
+  },
+  "prompts": {
+    "system": [],
+    "activeId": null
+  },
+  "agents": {
+    "list": [],
+    "activeId": "builtin-generalist-agent",
+    "memories": []
+  },
+  "quickActions": {
+    "list": [
+      {
+        "id": "make-longer",
+        "name": "Make text longer",
+        "enabled": true,
+        "prompt": "Expand and elaborate on the following text, making it more detailed and comprehensive while maintaining the original meaning and tone. Only return the expanded text without any additional commentary:\n\n",
+        "actionType": "replace"
+      },
+      {
+        "id": "summarize",
+        "name": "Summarize text",
+        "enabled": true,
+        "prompt": "Provide a concise summary of the following text. Only return the summary without any additional commentary:\n\n",
+        "actionType": "replace"
+      },
+      {
+        "id": "improve-writing",
+        "name": "Improve writing",
+        "enabled": true,
+        "prompt": "Improve the writing quality, clarity, and style of the following text. Only return the improved text without any additional commentary:\n\n",
+        "actionType": "replace"
+      },
+      {
+        "id": "fix-grammar",
+        "name": "Fix grammar",
+        "enabled": true,
+        "prompt": "Fix any grammar, spelling, and punctuation errors in the following text. Only return the corrected text without any additional commentary:\n\n",
+        "actionType": "replace"
+      },
+      {
+        "id": "explain",
+        "name": "Explain text",
+        "enabled": true,
+        "prompt": "Explain the following text in simple terms:\n\n",
+        "actionType": "explain"
+      }
+    ],
+    "prefix": "⚡"
+  }
+}

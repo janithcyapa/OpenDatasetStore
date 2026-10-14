@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "updatedAt": 1791003144085,
+  "activeId": "builtin-generalist-agent",
+  "agents": [
+    {
+      "id": "builtin-generalist-agent",
+      "name": "Intelligence Assistant",
+      "icon": "✨",
+      "updatedAt": 1791003143087,
+      "file": ".obsidian/plugins/intelligence-assistant/data/agents/builtin-generalist-agent-1ou4o04.json"
+    },
+    {
+      "id": "builtin-librarian",
+      "name": "🔍 Librarian (知识矿工)",
+      "icon": "library",
+      "updatedAt": 1780157341493,
+      "file": ".obsidian/plugins/intelligence-assistant/data/agents/builtin-librarian-w7shym.json"
+    },
+    {
+      "id": "builtin-architect",
+      "name": "🏗️ Architect (白板建筑师)",
+      "icon": "layout-dashboard",
+      "updatedAt": 1780157341493,
+      "file": ".obsidian/plugins/intelligence-assistant/data/agents/builtin-architect-1q946h7.json"
+    },
+    {
+      "id": "builtin-researcher",
+      "name": "🧬 Researcher (深度研究员)",
+      "icon": "microscope",
+      "updatedAt": 1780157341493,
+      "file": ".obsidian/plugins/intelligence-assistant/data/agents/builtin-researcher-1cd7dyq.json"
+    },
+    {
+      "id": "builtin-scribe",
+      "name": "🖋️ Scribe (创作伙伴)",
+      "icon": "pen-tool",
+      "updatedAt": 1780157341493,
+      "file": ".obsidian/plugins/intelligence-assistant/data/agents/builtin-scribe-1bm2g38.json"
+    }
+  ]
+}

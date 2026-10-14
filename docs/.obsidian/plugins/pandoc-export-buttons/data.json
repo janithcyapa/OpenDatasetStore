@@ -1,0 +1,25 @@
+{
+  "pandocPath": "",
+  "pdfEngine": "",
+  "outputMode": "note-folder",
+  "vaultFolder": "pandoc-exports",
+  "customFolder": "",
+  "openAfterExport": true,
+  "revealInFolder": false,
+  "extraArgs": "",
+  "enabledFormats": [
+    "docx",
+    "pdf",
+    "html",
+    "epub",
+    "latex",
+    "odt",
+    "rtf",
+    "pptx",
+    "ipynb"
+  ],
+  "citations": "auto",
+  "bibliographyPath": "",
+  "cslPath": "",
+  "preserveBlankLines": true
+}

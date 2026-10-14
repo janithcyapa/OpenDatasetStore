@@ -1,0 +1,33 @@
+{
+  "id": "builtin-scribe",
+  "name": "🖋️ Scribe (创作伙伴)",
+  "description": "Focused on high-quality writing, multimodal understanding (Vision), and maintaining your personal voice.",
+  "icon": "pen-tool",
+  "systemPromptId": "prompt-scribe",
+  "modelStrategy": {
+    "strategy": "chat-view"
+  },
+  "toolAccess": {
+    "sources": {
+      "builtin:builtin": [
+        "builtin:builtin:read_file",
+        "builtin:builtin:write_file",
+        "builtin:builtin:create_note",
+        "builtin:builtin:append_to_note"
+      ]
+    }
+  },
+  "temperature": 0.7,
+  "maxTokens": 4000,
+  "memoryType": "none",
+  "memoryConfig": {
+    "summaryInterval": 10,
+    "maxMemories": 50
+  },
+  "ragEnabled": true,
+  "webSearchEnabled": false,
+  "maxSteps": 10,
+  "contextWindow": 30,
+  "createdAt": 1780157341493,
+  "updatedAt": 1780157341493
+}

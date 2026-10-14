@@ -1,0 +1,33 @@
+{
+  "id": "builtin-librarian",
+  "name": "🔍 Librarian (知识矿工)",
+  "description": "Specializes in metadata management, folder organization, and finding semantic connections in your vault.",
+  "icon": "library",
+  "systemPromptId": "prompt-librarian",
+  "modelStrategy": {
+    "strategy": "chat-view"
+  },
+  "toolAccess": {
+    "sources": {
+      "builtin:builtin": [
+        "builtin:builtin:read_file",
+        "builtin:builtin:list_files",
+        "builtin:builtin:update_properties",
+        "builtin:builtin:search_files"
+      ]
+    }
+  },
+  "temperature": 0.7,
+  "maxTokens": 4000,
+  "memoryType": "none",
+  "memoryConfig": {
+    "summaryInterval": 10,
+    "maxMemories": 50
+  },
+  "ragEnabled": true,
+  "webSearchEnabled": false,
+  "maxSteps": 10,
+  "contextWindow": 30,
+  "createdAt": 1780157341493,
+  "updatedAt": 1780157341493
+}

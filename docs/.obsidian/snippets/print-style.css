@@ -1,0 +1,33 @@
+@media print {
+  body {
+    /* Switch from web-fonts to classic editorial fonts */
+    --font-text-override: 'Georgia', 'Garamond', 'Times New Roman', serif !important;
+    --font-text-size: 11pt !important;
+    --line-height-normal: 1.5 !important;
+  }
+
+  /* Keep headings clean and professional */
+  h1, h2, h3, h4 {
+    font-family: 'Arial', 'Helvetica', sans-serif !important;
+    color: #000000 !important;
+    page-break-after: avoid; 
+  }
+
+  /* Prevent paragraphs and lists from splitting awkwardly across pages */
+  p, li, blockquote {
+    page-break-inside: avoid;
+  }
+
+  /* Restyle links so they look like standard text */
+  a {
+    color: black !important;
+    text-decoration: none !important;
+  }
+
+  /* Clean up code blocks for print */
+  pre {
+    border: 1px solid #ccc !important;
+    background-color: #f9f9f9 !important;
+    page-break-inside: avoid;
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "updatedAt": 1791003144086,
+  "activeId": null,
+  "prompts": [
+    {
+      "id": "default",
+      "name": "Default Assistant",
+      "enabled": true,
+      "updatedAt": 1791003143041,
+      "file": ".obsidian/plugins/intelligence-assistant/data/prompts/default-pjqibl.json"
+    },
+    {
+      "id": "builtin-intelligence-assistant",
+      "name": "✨ Intelligence Assistant Core",
+      "enabled": true,
+      "updatedAt": 1780157341493,
+      "file": ".obsidian/plugins/intelligence-assistant/data/prompts/builtin-intelligence-assistant-r26xq2.json"
+    },
+    {
+      "id": "prompt-librarian",
+      "name": "🔍 Librarian System Prompt",
+      "enabled": true,
+      "updatedAt": 1780157341493,
+      "file": ".obsidian/plugins/intelligence-assistant/data/prompts/prompt-librarian-avdhin.json"
+    },
+    {
+      "id": "prompt-architect",
+      "name": "🏗️ Architect System Prompt",
+      "enabled": true,
+      "updatedAt": 1780157341493,
+      "file": ".obsidian/plugins/intelligence-assistant/data/prompts/prompt-architect-14wp618.json"
+    },
+    {
+      "id": "prompt-researcher",
+      "name": "🧬 Researcher System Prompt",
+      "enabled": true,
+      "updatedAt": 1780157341493,
+      "file": ".obsidian/plugins/intelligence-assistant/data/prompts/prompt-researcher-pyahzl.json"
+    },
+    {
+      "id": "prompt-scribe",
+      "name": "🖋️ Scribe System Prompt",
+      "enabled": true,
+      "updatedAt": 1780157341493,
+      "file": ".obsidian/plugins/intelligence-assistant/data/prompts/prompt-scribe-qeyv0z.json"
+    }
+  ]
+}

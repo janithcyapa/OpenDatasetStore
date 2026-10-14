@@ -1,1 +1,20 @@
-{}
+{
+  "defaultViewMode": "source",
+  "livePreview": true,
+  "readableLineLength": false,
+  "strictLineBreaks": true,
+  "showLineNumber": true,
+  "rightToLeft": false,
+  "vimMode": false,
+  "pdfExportSettings": {
+    "includeName": false,
+    "pageSize": "A4",
+    "landscape": false,
+    "margin": "0",
+    "downscalePercent": 60
+  },
+  "showInlineTitle": true,
+  "foldIndent": true,
+  "spellcheck": true,
+  "alwaysUpdateLinks": true
+}
