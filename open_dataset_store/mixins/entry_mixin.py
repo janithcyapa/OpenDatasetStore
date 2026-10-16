@@ -1,5 +1,6 @@
 import os
 import io
+import ast
 import pandas as pd
 from typing import Dict, Optional
 
@@ -132,7 +133,31 @@ class EntryManagementMixin:
         print(f"✅ Entry '{entry_id}' created. File saved as {raw_filename}")
         return entry_id
 
-    def list_entries(self, entry_type: str) -> pd.DataFrame:
+    def list_entries(
+        self,
+        entry_type: str,
+        include_paths: bool = False,
+        raw: bool = False,
+    ) -> pd.DataFrame:
+        """
+        Lists all entries of a given entry_type in a clean, structured DataFrame.
+
+        Parameters
+        ----------
+        entry_type : str
+            The entry type (e.g. 'experiments').
+        include_paths : bool, default False
+            If False (default), shows file availability ('Available' / 'Not Available')
+            and metadata comments without full file path columns.
+            If True, adds a path column directly next to each availability column.
+        raw : bool, default False
+            If True, returns the unformatted dictionary/metadata DataFrame as stored in the index.
+
+        Returns
+        -------
+        pd.DataFrame
+            Clean DataFrame of entries with separated file availability and metadata columns.
+        """
         index_data = self._load_json(self._get_entry_index_path(entry_type))
         entries = {k: v for k, v in index_data.items() if not k.startswith("__")}
         if not entries:
@@ -142,10 +167,113 @@ class EntryManagementMixin:
         df = pd.DataFrame.from_dict(entries, orient="index")
         df.index.name = "entry_id"
         df.reset_index(inplace=True)
-        cols_order = ["entry_id", "entity_id", "timestamp", "description", "raw_csv_path", "processed_files"]
-        other_cols = [c for c in df.columns if c not in cols_order]
-        df = df[cols_order + other_cols]
-        return df
+
+        if raw:
+            cols_order = ["entry_id", "entity_id", "timestamp", "description", "raw_csv_path", "processed_files"]
+            other_cols = [c for c in df.columns if c not in cols_order]
+            return df[[c for c in cols_order if c in df.columns] + other_cols]
+
+        return self._format_entries_dataframe(df, include_paths=include_paths)
+
+    def _format_entries_dataframe(self, df: pd.DataFrame, include_paths: bool = False) -> pd.DataFrame:
+        if df.empty:
+            return df
+
+        def _to_dict(val):
+            if val is None or pd.isna(val):
+                return {}
+            if isinstance(val, dict):
+                return val
+            if isinstance(val, str):
+                s = val.strip()
+                if not s or s == "{}" or s.lower() == "nan":
+                    return {}
+                try:
+                    res = ast.literal_eval(s)
+                    if isinstance(res, dict):
+                        return res
+                except Exception:
+                    pass
+            return {}
+
+        res = df.copy()
+        base_priority = ["entry_id", "entity_id", "timestamp", "description"]
+        base_cols = [c for c in base_priority if c in res.columns]
+
+        raw_paths = res.get("raw_csv_path", pd.Series(index=res.index, dtype=object))
+        proc_files = res.get("processed_files", pd.Series(index=res.index, dtype=object)).apply(_to_dict)
+        rel_files = res.get("related_files", pd.Series(index=res.index, dtype=object)).apply(_to_dict)
+        proc_meta = res.get("processed_metadata", pd.Series(index=res.index, dtype=object)).apply(_to_dict)
+
+        file_cols = {}
+
+        # 1. Raw file columns
+        has_raw = raw_paths.apply(lambda p: bool(p and not pd.isna(p) and str(p).strip()))
+        file_cols["raw_file_available"] = has_raw.map({True: "Available", False: "Not Available"})
+        if include_paths:
+            file_cols["raw_file_path"] = raw_paths.apply(
+                lambda p: str(p) if (p and not pd.isna(p) and str(p).strip()) else None
+            )
+
+        # 2. Processed files columns (sub-columns per populated tag)
+        all_proc_tags = sorted(list({tag for d in proc_files for tag in d.keys()}))
+        for tag in all_proc_tags:
+            avail_col = f"proc_{tag}_available"
+            file_cols[avail_col] = proc_files.apply(
+                lambda d: "Available" if tag in d else "Not Available"
+            )
+
+            # Extract comment/metadata if available, placed next to availability
+            def _extract_meta_comment(meta_dict, t=tag):
+                m = meta_dict.get(t, {})
+                if isinstance(m, dict):
+                    comment = m.get("comment")
+                    if comment:
+                        return str(comment)
+                    other_items = [f"{k}: {v}" for k, v in m.items() if v]
+                    return " | ".join(other_items) if other_items else None
+                elif isinstance(m, str) and m.strip():
+                    return m.strip()
+                return None
+
+            comment_series = proc_meta.apply(_extract_meta_comment)
+            if any(c is not None for c in comment_series):
+                comment_col = f"proc_{tag}_comment"
+                file_cols[comment_col] = comment_series
+
+            if include_paths:
+                path_col = f"proc_{tag}_path"
+                file_cols[path_col] = proc_files.apply(
+                    lambda d: str(d[tag]) if tag in d else None
+                )
+
+        # 3. Related files columns (sub-columns per populated label)
+        all_rel_labels = sorted(list({lbl for d in rel_files for lbl in d.keys()}))
+        for lbl in all_rel_labels:
+            avail_col = f"rel_{lbl}_available"
+            file_cols[avail_col] = rel_files.apply(
+                lambda d: "Available" if lbl in d else "Not Available"
+            )
+            if include_paths:
+                path_col = f"rel_{lbl}_path"
+                file_cols[path_col] = rel_files.apply(
+                    lambda d: str(d[lbl]) if lbl in d else None
+                )
+
+        # Drop old nested/unformatted columns
+        cols_to_drop = ["raw_csv_path", "processed_files", "related_files", "processed_metadata"]
+        res = res.drop(columns=cols_to_drop, errors="ignore")
+
+        # Organize final columns logically
+        file_df = pd.DataFrame(file_cols, index=res.index)
+        other_meta = [c for c in res.columns if c not in base_cols]
+        general_order = ["date", "time", "weight_kg", "notes"]
+        gen_cols = [c for c in general_order if c in other_meta]
+        remaining = [c for c in other_meta if c not in gen_cols]
+
+        final_df = pd.concat([res[base_cols + gen_cols], file_df, res[remaining]], axis=1)
+        return final_df
+
 
     def get_entry(self, entry_type: str, entry_id: str) -> Dict:
         index_data = self._load_json(self._get_entry_index_path(entry_type))
